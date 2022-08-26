@@ -4,6 +4,7 @@ import Footer from "./Footer";
 import "bootstrap/dist/css/bootstrap.min.css";
 import homeImage from "../../assets/home-img.png";
 import Item from "./Item";
+import Minter from "./Minter";
 
 function App() {
 
@@ -12,8 +13,9 @@ function App() {
   return (
     <div className="App">
       <Header />
+      <Minter />
       {/* pssing the nft id as a prop to the Item component */}
-      <Item id={NFTID}/>
+      {/* <Item id={NFTID}/> */}
       {/* <img className="bottom-space" src={homeImage} /> */}
       <Footer />
     </div>
