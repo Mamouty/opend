@@ -1,6 +1,6 @@
 body {
   font-size: 1.5rem;
-  background-color: #141416 !important;
+  background-color: #eecafc !important;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
@@ -17,7 +17,7 @@ a {
 #footer {
   font-size: large;
   border-top: 1px solid #353945;
-  background-color: #141416;
+  background-color: #eecafc;
   text-align: center;
   bottom: 0;
   width: 100%;
@@ -304,7 +304,7 @@ body {
 }
 .AppBar-colorPrimary {
   color: #fcfcfd;
-  background-color: #141416;
+  background-color: white;
 }
 
 .Toolbar-root {

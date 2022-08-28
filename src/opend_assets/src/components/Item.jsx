@@ -13,7 +13,7 @@ function Item(props) {
   const [image, setImage] = useState();
 
   //Getting hold of the nft canister id to use its methods
-  const id = Principal.fromText(props.id);
+  const id = props.id;
   //Making http requests in order to access the nft canister 
   const localHost = "http://localhost:8080/";
   //Creating a new HttpAgent to make requests using the localhost

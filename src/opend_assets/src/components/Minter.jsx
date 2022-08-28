@@ -87,7 +87,7 @@ function Minter() {
          Minted!
        </h3>
        <div className="horizontal-center">
-       {/* Passint the nft's id as prop to the Item component */}
+       {/* Passing the nft's id as prop to the Item component */}
          <Item id={nftPrincipal.toText()}/>
        </div>
      </div>
