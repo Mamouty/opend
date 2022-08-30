@@ -8,7 +8,7 @@ actor class NFT (name: Text, owner: Principal, content: [Nat8]) = this {// "this
 
     // Using the class's values to pass the data to the nft's items
     let itemName = name;
-    let nftOwner = owner;
+    var nftOwner = owner;
     let imageBytes = content;
 
     // Returning the values through query functions
@@ -28,5 +28,17 @@ actor class NFT (name: Text, owner: Principal, content: [Nat8]) = this {// "this
         // Using fromActor() method to retrieve the Actor's Principal
         return Principal.fromActor(this);
     };
+    // Transferring an NFT to the platform when it's bought (Passing the NFT from the owner to the new owner)
+    public shared(msg) func transferOwnership(newOwner: Principal) : async Text {
+        // Checking if this function is being called by the owner fo the NFT
+        if (msg.caller == nftOwner) {
+            nftOwner := newOwner;
+            return "Success";
+        } else {
+            return "Error: Not initiated by NFT owner."
+        }
+    };
+
+
 
 };

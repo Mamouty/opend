@@ -5,12 +5,16 @@ import { Actor, HttpAgent } from "@dfinity/agent";
 //Importing the IDL(Interface Description Language) factory 
 import { idlFactory } from "../../../declarations/nft";
 import { Principal } from "@dfinity/principal";
+import { opend } from "../../../declarations/opend"; 
+import Button from "./Button";
 
 function Item(props) {
 
   const [name, setName] = useState();
   const [owner, setOwner] = useState();
   const [image, setImage] = useState();
+  const [button, setButton] = useState();
+  const [priceInput, setPriceInput] = useState();
 
   //Getting hold of the nft canister id to use its methods
   const id = props.id;
@@ -18,13 +22,17 @@ function Item(props) {
   const localHost = "http://localhost:8080/";
   //Creating a new HttpAgent to make requests using the localhost
   const agent = new HttpAgent({host: localHost});
+  // TODO : when deploy live, remove the line down below
+  agent.fetchRootKey();
+
+  let NFTActor;
 
   //Creating an async function to call the async methods of the nft canister
   async function loadNFT() {
   //Using the HttpAgent in order to fetch the name, owner and image from the nft canister.
   //Passing the idlFactory as the first input.
   //The second input will be the options.
-    const NFTActor = await Actor.createActor(idlFactory, {
+    NFTActor = await Actor.createActor(idlFactory, {
       agent,
       canisterId: id,
     });
@@ -34,19 +42,52 @@ function Item(props) {
     const owner = await NFTActor.getOwner();
     setOwner(owner.toLocaleString());
     const imageData = await NFTActor.getAsset();
-    //Converting the imageData from Nat8 to Uint8Array to be read by JavaScript
+    // Converting the imageData from Nat8 to Uint8Array to be read by JavaScript
     const imageContent = new Uint8Array(imageData);
-    //Creating an image URL from the Unit8Array imageContent by passing it as a blob object
-    //.buffer will turn imageContent to an array buffer
+    // Creating an image URL from the Unit8Array imageContent by passing it as a blob object
+    // .buffer will turn imageContent to an array buffer
     const image = URL.createObjectURL(new Blob([imageContent.buffer], { type: "image/png" }));
     setImage(image);
+    // Passing the function handleSell as a prop to the Button component when it is clicked
+    setButton(<Button handleClick={handleSell} text={"Sell"} />);
 
   };
-
-//Calling the loadNFT() only once when this component gets rendered using the useEffect() hook by leaving its array parameter empty.
+ 
+// Calling the loadNFT() only once when this component gets rendered using the useEffect() hook by leaving its array parameter empty.
   useEffect(() => { 
     loadNFT(); 
   }, []);
+// Setting the price input when the button sell is clicked
+  let price;
+  function handleSell() {
+    console.log("Sell clicked");
+    setPriceInput(
+      <input
+        placeholder="Price in DANG"
+        type="number"
+        className="price-input"
+        value={price}
+        onChange={(e) => (price = e.target.value)}
+      />
+    );
+    // Changing the button's text to "confirm" and it's functionality to sell the item 
+    setButton(<Button handleClick={sellItem} text={"Confirm"} />);
+  }
+
+  async function sellItem() {
+    console.log("set price = " + price);
+    const listingResult = await opend.listItem(props.id, Number(price));
+    console.log("listing " + listingResult);
+    if (listingResult == "Success") {
+      // Getting the Principal id of the new owner of the NFT
+      const openDId = await opend.getOpenDCanisterID();
+      // Transferring the NFT to the new owner
+      const transferResult = await NFTActor.transferOwnership(openDId);
+      console.log("transfer: " + transferResult);
+    }
+  };
+ 
+
 
   return (
     <div className="disGrid-item">
@@ -63,6 +104,8 @@ function Item(props) {
           <p className="disTypography-root makeStyles-bodyText-24 disTypography-body2 disTypography-colorTextSecondary">
             Owner: {owner}
           </p>
+          {priceInput}
+          {button}
         </div>
       </div>
     </div>
