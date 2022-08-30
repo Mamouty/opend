@@ -5,7 +5,7 @@ import { Principal } from "@dfinity/principal"
 function Gallery(props) {
 
   const [items, setItems] = useState();
-  // Setting the item components for each NFT using their Ids
+  // Setting the Item components for each NFT using their Ids
   function fetchNFTs() {
     if (props.ids != undefined) {
       setItems(props.ids.map( (NFTId) => <Item id={NFTId} key={NFTId.toText()} /> ));
