@@ -8,7 +8,7 @@ function Gallery(props) {
   // Setting the Item components for each NFT using their Ids
   function fetchNFTs() {
     if (props.ids != undefined) {
-      setItems(props.ids.map( (NFTId) => <Item id={NFTId} key={NFTId.toText()} /> ));
+      setItems(props.ids.map( (NFTId) => <Item id={NFTId} key={NFTId.toText()} role={props.role} /> ));
     }
   };
   // Rendering the Item components

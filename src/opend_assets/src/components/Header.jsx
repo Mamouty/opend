@@ -10,13 +10,20 @@ import CURRENT_USER_ID from "../index";
 function Header() {
 
   const [userOwnedGallery, setOwnedGallery] = useState();
+  const [listingGallery, setListingGallery] = useState();
 
   // Retrieving the user's NFTs
   async function getNFTs() {
     const userNFTIds = await opend.getOwnedNFTs(CURRENT_USER_ID);
     console.log(userNFTIds);
     // Setting the Gallery component for a specific user by passing the Ids of his NFTs
-    setOwnedGallery(<Gallery title="My NFTs" ids={userNFTIds} />);
+    setOwnedGallery(<Gallery title="My NFTs" ids={userNFTIds} role="collection"/>);
+    // Getting the array of listed NFTs for sale
+    const listedNFTIds = await opend.getListedNFTs();
+    console.log(listedNFTIds);
+    // Passing the listed NFTs for sale to the Gallery component
+    setListingGallery(<Gallery title="Discover" ids={listedNFTIds} role="discover" />)
+
   };
 
   useEffect(() => {
@@ -59,7 +66,7 @@ function Header() {
         </Route>
         {/* The routes specified in the 'path' attributes should match the ones of the Link components 'to' attributes */}
         <Route path="/discover">
-          <h1>Discover</h1>
+          {listingGallery}
         </Route>
         <Route path="/minter">
           <Minter />

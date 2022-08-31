@@ -5,6 +5,7 @@ import Debug "mo:base/Debug";
 import NFTActorClass "../NFT/nft";// To use the nft actor class
 import HashMap "mo:base/HashMap";
 import List "mo:base/List";
+import Iter "mo:base/Iter";
 
 
 actor OpenD {
@@ -67,6 +68,12 @@ actor OpenD {
         };
         return List.toArray(userNFTs);
     };
+    // Getting hold of the Principal Ids of all the listed NFTs for sale
+    public query func getListedNFTs() : async [Principal] {
+        let ids = Iter.toArray(mapOfListings.keys());
+        return ids;
+    };
+
     // Using a shared function to add the listing price the mapOfListings HashMap
     public shared(msg) func listItem(id: Principal, price: Nat) : async Text {
         // Checking if the NFT already exists in the HashMap
@@ -100,5 +107,25 @@ actor OpenD {
             return true;
         }
     };
+    // Getting the original owner of the NFT listed for sale
+    public query func getOriginalOwner(id: Principal) : async Principal {
+        var listing : Listing = switch (mapOfListings.get(id)) {
+            // Returning an empty principle the case of Principal id passed form this function doesn't correspond to any NFT
+            case null return Principal.fromText("");
+            // Unwrapping the result if the Principal id matches any NFT
+            case (?result) result;
+        };
+        // Returning the owner of the NFT
+        return listing.itemOwner;
+    };
+    //Getting the price of the NFT listed for sale
+    public query func getListedNFTPrice(id: Principal) : async Nat {
+        var listing : Listing = switch (mapOfListings.get(id)) {
+            case null return 0; 
+            case (?result) result;
+        };
+
+        return listing.itemPrice;
+    }
  
 };

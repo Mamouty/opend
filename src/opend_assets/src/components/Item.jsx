@@ -7,6 +7,8 @@ import { idlFactory } from "../../../declarations/nft";
 import { Principal } from "@dfinity/principal";
 import { opend } from "../../../declarations/opend"; 
 import Button from "./Button";
+import CURRENT_USER_ID from "../index";
+import PriceLabel from "./PriceLabel";
 
 function Item(props) {
 
@@ -18,6 +20,7 @@ function Item(props) {
   const [loaderHidden, setLoaderHidden] = useState(true);
   const [blur, setBlur] = useState();
   const [sellStatus, setSellStatus] = useState(""); 
+  const [priceLabel, setPriceLabel] = useState();
 
   //Getting hold of the nft canister id to use its methods
   const id = props.id;
@@ -52,16 +55,29 @@ function Item(props) {
     const image = URL.createObjectURL(new Blob([imageContent.buffer], { type: "image/png" }));
     setImage(image);
 
-    // Calling the isListed() function to know if NFT item has been listed for sale or not
-    const nftIsListed = await opend.isListed(props.id);
-    // Changing the styling and functionality of the NFT item if it's listed for sale
-    if (nftIsListed) {
-      setOwner("OpenD");
-      setBlur({filter: "blur(4px)"});
-      setSellStatus("Listed");
-    } else {
-    // Passing the function handleSell as a prop to the Button component when it is clicked
-    setButton(<Button handleClick={handleSell} text={"Sell"} />);
+    if (props.role == "collection") {
+      // Calling the isListed() function to know if NFT item has been listed for sale or not
+      const nftIsListed = await opend.isListed(props.id);
+      // Changing the styling and functionality of the NFT item if it's listed for sale
+      if (nftIsListed) {
+        setOwner("OpenD");
+        setBlur({filter: "blur(4px)"});
+        setSellStatus("Listed");
+      } else {
+      // Passing the function handleSell as a prop to the Button component when it is clicked
+      setButton(<Button handleClick={handleSell} text={"Sell"} />);
+      }
+    } else if (props.role == "discover"){
+      const originalOwner = await opend.getOriginalOwner(props.id);
+      // Dispalying the button with buy text if the original oner of the NFT is not the current user
+      if (originalOwner.toText() != CURRENT_USER_ID.toText()) {
+        // Rendering the NFTs listed for sale in the Gallery component 
+        setButton(<Button handleClick={handleBuy} text={"Buy"} />);
+      }
+      // Displaying the price of the NFT listed to sale
+      const price = await opend.getListedNFTPrice(props.id);
+      setPriceLabel(<PriceLabel sellPrice={price.toString()} />);
+
     }
 
   };
@@ -111,9 +127,11 @@ function Item(props) {
       }
     }
   };
+
+  async function handleBuy() {
+    console.log("Buy was triggered");
+  };
  
-
-
   return (
     <div className="disGrid-item">
       <div className="disPaper-root disCard-root makeStyles-root-17 disPaper-elevation1 disPaper-rounded">
@@ -129,6 +147,7 @@ function Item(props) {
           <div></div>
         </div>
         <div className="disCardContent-root">
+        {priceLabel}
           <h2 className="disTypography-root makeStyles-bodyText-24 disTypography-h5 disTypography-gutterBottom">
             {name}
             <span className="purple-text"> {sellStatus}</span>
