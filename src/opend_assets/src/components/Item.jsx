@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import logo from "../../assets/logo.png";
 //Importing the HttpAgent to create agents
 import { Actor, HttpAgent } from "@dfinity/agent";
-//Importing the IDL(Interface Description Language) factory 
+//Importing the IDL(Interface Description Language) factory where the methods to work with are listed
 import { idlFactory } from "../../../declarations/nft";
+import { idlFactory as tokenIdlFactory } from "../../../declarations/token";
 import { Principal } from "@dfinity/principal";
 import { opend } from "../../../declarations/opend"; 
 import Button from "./Button";
@@ -21,6 +22,7 @@ function Item(props) {
   const [blur, setBlur] = useState();
   const [sellStatus, setSellStatus] = useState(""); 
   const [priceLabel, setPriceLabel] = useState();
+  const [shouldDisplay, setDisplay] = useState(true);
 
   //Getting hold of the nft canister id to use its methods
   const id = props.id;
@@ -61,13 +63,13 @@ function Item(props) {
       // Changing the styling and functionality of the NFT item if it's listed for sale
       if (nftIsListed) {
         setOwner("OpenD");
-        setBlur({filter: "blur(4px)"});
+        setBlur({ filter: "blur(4px)" });
         setSellStatus("Listed");
       } else {
       // Passing the function handleSell as a prop to the Button component when it is clicked
       setButton(<Button handleClick={handleSell} text={"Sell"} />);
       }
-    } else if (props.role == "discover"){
+    } else if (props.role == "discover") {
       const originalOwner = await opend.getOriginalOwner(props.id);
       // Dispalying the button with buy text if the original oner of the NFT is not the current user
       if (originalOwner.toText() != CURRENT_USER_ID.toText()) {
@@ -109,7 +111,7 @@ function Item(props) {
     setLoaderHidden(false);
     console.log("set price = " + price);
     const listingResult = await opend.listItem(props.id, Number(price));
-    console.log("listing " + listingResult);
+    console.log("listing: " + listingResult);
     if (listingResult == "Success") {
       // Getting the Principal id of the new owner of the NFT
       const openDId = await opend.getOpenDCanisterID();
@@ -130,10 +132,35 @@ function Item(props) {
 
   async function handleBuy() {
     console.log("Buy was triggered");
+    setLoaderHidden(false);
+    const tokenActor = await Actor.createActor(tokenIdlFactory, {
+      agent,
+      canisterId: Principal.fromText("xub3y-eqaaa-aaaaa-aaawq-cai"),
+    });
+
+    const sellerId = await opend.getOriginalOwner(props.id);
+    const itemPrice = await opend.getListedNFTPrice(props.id);
+    // Transferring the money of the bought NFT to the seller
+    const result = await tokenActor.transfer(sellerId, itemPrice);
+    // Transferring the ownership of the NFT to the buyer
+    if (result == "Success") {
+      const transferResult = await opend.completePurchase(
+      props.id,
+      sellerId, 
+      CURRENT_USER_ID
+      );
+      console.log("purchase: " + transferResult);
+      setLoaderHidden(true);
+      // Removing the purchased NFT from the gallery
+      setDisplay(false);
+    }
   };
  
   return (
-    <div className="disGrid-item">
+    <div
+     style={{ display: shouldDisplay ? "inline" : "none" }} 
+     className="disGrid-item"
+     >
       <div className="disPaper-root disCard-root makeStyles-root-17 disPaper-elevation1 disPaper-rounded">
         <img
           className="disCardMedia-root makeStyles-image-19 disCardMedia-media disCardMedia-img"

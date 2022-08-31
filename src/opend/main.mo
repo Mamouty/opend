@@ -126,6 +126,37 @@ actor OpenD {
         };
 
         return listing.itemPrice;
-    }
+    };
+
+    public shared(msg) func completePurchase(id: Principal, ownerId: Principal, newOwnerId: Principal) : async Text {
+        // Pulling out the purchased NFTs from the mapOfNFTs
+        var purchasedNFT : NFTActorClass.NFT = switch (mapOfNFTs.get(id)) {
+          case null return "NFT does not exist";
+          case (?result) result
+        };
+        // Transferring the NFT to the new owner using the transfer method from NFT actor class 
+        let transferResult = await purchasedNFT.transferOwnership(newOwnerId);
+        // Deleting the item form the mapOfListings and the previous owner's registered List of owned NFTs of the mapOfOwners if the transfer is successful 
+        if (transferResult == "Success") {
+          mapOfListings.delete(id);
+          // Getting hold of the list of NFTs the seller owned to delete the bought NFT from it
+          var ownedNFTs : List.List<Principal> = switch (mapOfOwners.get(ownerId)) {
+            case null List.nil<Principal>();
+            case (?result) result;
+          };
+          // Updating the ownedNFTs List using the filter() method
+          ownedNFTs := List.filter(ownedNFTs, func (listItemId: Principal) : Bool {
+            // Looping through List of owned NFTs and checking for each if they have the same Principal Id as the one of the purchased NFT
+            return listItemId != id; // In case it's true that NFT will be added to the ownedNFTs List otherwise it will be ommitted
+          });
+          // Adding the purchased NFT to the map of the new owner  
+          addToOwnershipMap(newOwnerId, id);
+          return "Success";
+        } else { // if the transfer hasn't been done we return its result to check for the problem
+          Debug.print("hello");
+          return transferResult;
+          
+        }
+    };
  
 };
